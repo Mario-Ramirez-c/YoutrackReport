@@ -1,5 +1,4 @@
-﻿
-@page "/Metricas"
+﻿@page "/Metricas"
 @using Newtonsoft.Json
 @using Newtonsoft.Json.Linq
 @using YoutrackReport.DTOs
@@ -40,7 +39,7 @@
                                 <div class="card text-dark bg-info mb-3 estado-box">
                                     <div class="card-body">
                                         <h5 class="card-title">Total de proyectos</h5>
-                                        <p class="card-text">@totalProyectos</p>
+                                        <p class="card-text">@lista.CantidadTerminado.ToString() +@lista.CantidadEnCurso)</p>
                                     </div>
                                 </div>
                             </div>
@@ -48,7 +47,7 @@
                                 <div class="card text-dark bg-warning mb-3 estado-box">
                                     <div class="card-body">
                                         <h5 class="card-title">En curso</h5>
-                                        <p class="card-text">@totalProyectosEnCurso</p>
+                                        <p class="card-text">@lista.CantidadEnCurso</p>
                                     </div>
                                 </div>
                             </div>
@@ -56,7 +55,7 @@
                                 <div class="card text-white bg-success mb-3 estado-box">
                                     <div class="card-body">
                                         <h5 class="card-title">Terminado</h5>
-                                        <p class="card-text">@resultado.terminado</p>
+                                        <p class="card-text">@lista.CantidadTerminado</p>
                                     </div>
                                 </div>
                             </div>
@@ -87,23 +86,23 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var jefeProyecto in lista)
+                        @foreach (var jefeProyecto in lista.kPI_Lista_JPs)
                         {
                             <tr>
-                                <td>@jefeProyecto.jefeProyecto</td>
-                                <td>@jefeProyecto.totalProyectos</td>
-                                <td>@jefeProyecto.terminadoJP </td>
-                                <td>@jefeProyecto.enCursoJP</td>
-                                <td>@jefeProyecto.desarrolloJP</td>
-                                <td>@jefeProyecto.detenidoJP</td>
-                                <td>@jefeProyecto.porIniciarJP</td>
+                                <td>@jefeProyecto.NomJP</td>
+                                <td>@jefeProyecto.CantidadDesarrolloJP</td>
+                                <td>@jefeProyecto.CantidadTerminadoJP </td>
+                                <td>@jefeProyecto.CantidadTerminadoJP - @jefeProyecto.CantidadDesarrolloJP</td>
+                                <td>@jefeProyecto.CantidadDesarrolloJP</td>
+                                <td>@jefeProyecto.CantidadDetenidoJP</td>
+                                <td>@jefeProyecto.CantidadPorIniciarJP</td>
                                 @* <td>@jefeProyecto.atrasosReal</td> *@
                                 @* <td>@jefeProyecto.atrasosQA</td> *@
                                 @* <td>@jefeProyecto.atrasosDesa</td> *@
-                                <td>@jefeProyecto.totalAtrasos</td>
+                                @*<td>@jefeProyecto.totalAtrasos</td>*@
                             </tr>
                         }
-                     
+
                     </tbody>
                 </table>
             </div>
@@ -120,14 +119,12 @@
 </div>
 
 <!-- FIN HTML -->
-
-
 @code {
     private List<FieldsDTO> metricas;
     public int totalProyectos = 0;
     public int totalProyectosEnCurso = 0;
     dynamic resultado = null;
-    private List<ResultadoJsonJP> lista = new();
+    private MetricasKPI lista = new();
     dynamic resultadoJP = null;
 
     protected override async Task OnInitializedAsync()
@@ -141,16 +138,16 @@
             {
                 totalProyectos = metricas.Count;
 
-                 var metricasKPI = ObtieneMetricasService.CalcularTotales(metricas);
+                MetricasKPI metricasKPI = ObtieneMetricasService.CalcularTotales(metricas);
+                metricasKPI = await ObtieneMetricasService.CalcularTotalesPorJP(metricas, metricasKPI);
+                lista = metricasKPI;
 
+                //await foreach (var jsonResultadoJP in ObtieneMetricasService.CalcularTotalesPorJP(metricas))
+                //{
 
-
-                await foreach (var jsonResultadoJP in ObtieneMetricasService.CalcularTotalesPorJP(metricas))
-                {
-
-                    resultadoJP = JsonConvert.DeserializeObject<ResultadoJsonJP>(jsonResultadoJP);
-                    lista.Add(resultadoJP);
-                }
+                //    resultadoJP = JsonConvert.DeserializeObject<ResultadoJsonJP>(jsonResultadoJP);
+                //    lista.Add(resultadoJP);
+                //}
 
             }
         }
